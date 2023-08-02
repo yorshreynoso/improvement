@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const postItRoutes = require('./routes/postit.routes');
+const userRoutes = require('./routes/user.routes');
 const morgan = require('morgan');
 
 
@@ -11,7 +11,7 @@ const PORT = process.env.PORT;
 app.use(express.json());
 app.use(morgan('dev'));
 
-app.use('/postit', postItRoutes)
+app.use('/user', userRoutes)
 
 // middleware
 app.use((req, res) => {
