@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const userRoutes = require('./routes/user.routes');
+require('./database');
 const morgan = require('morgan');
 
 
@@ -17,7 +18,9 @@ app.use('/user', userRoutes)
 app.use((req, res) => {
     console.log('The route is not correct');
     res.status(404).send("url not found");
-})
+});
+
+
 
 
 app.listen(PORT, () => {
