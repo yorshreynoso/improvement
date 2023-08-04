@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../models/user.model');
 
 
 router.get('/all', (req, res) => {
@@ -7,19 +8,38 @@ router.get('/all', (req, res) => {
     res.send('all information');
 });
 
-router.get('/:userId', (req, res) => {
-    const { userId } = req.params;
-    console.log(`The path variable userId is ${userId}`);
-    res.send('Get well formed');
+router.get('/:_id', async(req, res) => {
+    const { _id } = req.params;
+
+    try {
+        const userFind = await User.findById(_id);
+        res.json(userFind);
+        
+    } catch (error) {
+        res.status(404).send('The user was not found');
+    }
+    
 });
 
 
-router.post('/new', (req, res) => {
+//done
+router.post('/new', async (req, res) => {
+    let response = '';
+    let newUser = '';
     const { username, email, firstName, lastName, phoneNumber, city, birthday, gender, password, active } = req.body;
 
-  
-    console.log('correct, verify information');
-    res.json("Information received correctly");
+    console.log(User);
+
+    try {
+        newUser = await User(req.body);
+        
+        response = await newUser.save();
+        res.status(201).json(`the username ${response.username} was created correctly`);
+        
+    } catch (error) {
+        console.log(`Error saving ${error}`);
+        res.status(400).json(error)
+    }
 });
 
 router.put('/update/:userId', (req, res) => {
