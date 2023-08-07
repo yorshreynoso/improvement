@@ -3,11 +3,17 @@ const router = express.Router();
 const User = require('../models/user.model');
 
 
-router.get('/all', (req, res) => {
-    console.log('Getting all users');
-    res.send('all information');
+router.get('/all', async(req, res) => {
+    const users = await User.find();
+    console.log(users);
+    if(users) {
+        res.json(users)
+    } else {
+        res.status(404).send('no Users found');
+    }
 });
 
+//done
 router.get('/:_id', async(req, res) => {
     const { _id } = req.params;
 
@@ -42,20 +48,32 @@ router.post('/new', async (req, res) => {
     }
 });
 
-router.put('/update/:userId', (req, res) => {
+router.put('/update/:userId', async(req, res) => {
     console.log(req.params.userId);
-    const {userId} = req.params;
-    const { username, email, firstName, lastName, phoneNumber, city, birthday, gender, password, active} =  req.body;
+    const { userId } = req.params;
+    const { username, email, firstName, lastName, phoneNumber, city, birthday, gender, password, active} =  req.body; // this is not neccessary, mongoose check the differences.
 
-    console.log(`post: ${username}, modified`);
+    const updatedUser = await User.findByIdAndUpdate(userId, req.body, {upsert: false});
+
+    console.log(`post: ${updatedUser}, modified`);
     res.send(`Id ${userId} received correctly`);
 });
 
-router.delete('/delete/:userId', (req, res) => {
+router.delete('/delete/:userId', async(req, res) => {
     const { userId } = req.params;
 
-    console.log(`The userId ${userId} was deleted correctly`);
-    res.send('Deleted');
+    try {
+        const deletedUser = await User.findByIdAndDelete(userId);
+
+        if(deletedUser) {
+            return res.send('user deleted correctly');
+        }
+        return res.status(404).send("the user wasn't found");
+        
+    } catch (error) {
+        console.log(`There were a problem trying to delete de user`);
+        res.status(404).send("the user wasn't deleted");
+    }
 });
 
 module.exports = router;
