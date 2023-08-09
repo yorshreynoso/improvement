@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user.model');
+const multer = require('multer'); //receive files
+const upload = multer({dest: './upload/' });
 
 
 router.get('/all', async(req, res) => {
@@ -35,17 +37,17 @@ router.get('/:_id', async(req, res) => {
 
 
 //done
-router.post('/new', async (req, res) => {
-    let response = '';
-    let newUser = '';
+router.post('/new',upload.single('image'), async (req, res) => {
+    console.log('vamos');
     const { username, email, firstName, lastName, phoneNumber, city, birthday, gender, password, active } = req.body;
-
-    console.log(User);
+    const photo = req.file;
+    console.log(photo);
+    throw error('hasta aqui');
 
     try {
-        newUser = await User(req.body);
+        const newUser = await User(req.body);
         
-        response = await newUser.save();
+        const response = await newUser.save();
         res.status(201).json(`the username ${response.username} was created correctly`);
         
     } catch (error) {
