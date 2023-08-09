@@ -38,17 +38,15 @@ router.get('/:_id', async(req, res) => {
 
 //done
 router.post('/new',upload.single('image'), async (req, res) => {
-    console.log('vamos');
     const { username, email, firstName, lastName, phoneNumber, city, birthday, gender, password, active } = req.body;
-    const photo = req.file;
-    console.log(photo);
-    throw error('hasta aqui');
+
+    const userInfo = Object.assign({ imagePath:req.file.path }, req.body);
 
     try {
-        const newUser = await User(req.body);
+        const newUser = await User(userInfo);
         
         const response = await newUser.save();
-        res.status(201).json(`the username ${response.username} was created correctly`);
+        res.status(201).json(`the username ${response.username} was created correctly with id ${respnose._id}`);
         
     } catch (error) {
         console.log(`Error saving ${error}`);
