@@ -2,25 +2,25 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 
 
-const hashPassword = async(myPassword) => {
-    const password = myPassword.toString();
-    const saltRounds = Number(process.env.SALT_ROUNDS);
-
+const hashPassword = async(myPassword) => { 
     try {
+        const saltRounds = Number(process.env.SALT_ROUNDS);
         const autoGenSalt = await bcrypt.genSalt(saltRounds); // saltRound must be a number, not string
-        return await bcrypt.hash(password, autoGenSalt);
+        const hashedPassword = await bcrypt.hash(myPassword.toString(), autoGenSalt);
+        return hashedPassword;
 
     } catch (error) {
-        console.log(`There was some error trying to generate a hash, ${error}`);
+        console.error(`Error generating hash: ${error}`);
     }
 }
 
-const comparePassword = async (myPassword , hashPassword) => {
+const comparePassword = async (inputPassword , hashPassword) => {
     try {
-        return await bcrypt.compare(String(myPassword), hashPassword);
+        const isMatch = await bcrypt.compare(String(inputPassword), hashPassword);
+        return isMatch;
         
     } catch (error) {
-        console.log('Error comparing pass ', error);
+        console.error(`Error comparing passwords: ${error}`);
     }
 }
 
