@@ -2,13 +2,10 @@ const mongoose = require('mongoose');
 const db = require('../database');
 
 const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
-
-// console.log(ObjectId);
 
 const userSchema = new Schema({
     username: { type:String, min: 3 },
-    email: { type:String, required: true },
+    email: { type:String, required: true, unique:true },
     firstName: { type: String, required: true, min: 1 },
     lastName: { type:String },
     phoneNumber: { type:Number, required: false },
