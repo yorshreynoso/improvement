@@ -4,7 +4,29 @@ const User = require('../models/user.model');
 const multer = require('multer'); //receive files
 const upload = multer({dest: './upload/' });
 const {hashPassword, comparePassword } = require('../controller/encryptation');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+const PASSWORD_JWT = process.env.PASSWORD_JWT;
 
+
+router.get('/me', async (req, res) => {
+    
+    const token = req.headers['x-access-token'];
+
+    if(!token) {
+        return res.status(401).json({auth:false, message:" no token provided"});
+    }
+
+    const decode = jwt.verify(token, PASSWORD_JWT); // { id: '64d6de4b6050a3beaaae239c', iat: 1691803211, exp: 1691889611 }
+    const user = await User.findById(decode.id, {password: 0});
+
+    if(!user) {
+        return res.status(404).send('user wasnt found');
+    }
+
+    res.json(user);
+
+});
 
 router.get('/all', async(req, res) => {
     try {
@@ -41,8 +63,8 @@ router.get('/:_id', async (req, res) => {
 });
 
 
-//done
-router.post('/new',upload.single('image'), async (req, res) => {
+//sign up - new user, register
+router.post('/new',upload.single('image'), async (req, res) => { // sign up
     try {
         const { username, password } = req.body;
         const imagePath = req.file.path;
@@ -57,7 +79,11 @@ router.post('/new',upload.single('image'), async (req, res) => {
         const newUser = new User(userData); 
         const response = await newUser.save();
 
-        res.status(201).json(`the username ${username} was created correctly with id ${response._id}`);
+        const token = jwt.sign({ id: newUser._id }, PASSWORD_JWT, {
+            expiresIn: 60 * 60 * 24
+        });
+        res.status(201).json({auth: true, token});
+        //res.status(201).json(`the username ${username} was created correctly with id ${response._id}`);
         
     } catch (error) {
         console.error(`Error saving ${error}`);
@@ -66,10 +92,9 @@ router.post('/new',upload.single('image'), async (req, res) => {
 });
 
 router.put('/update/:userId', upload.single('image'), async (req, res) => {
+    let dataEncrypted = req.body;
     const { userId } = req.params;
     const { password } =  req.body; // this is not neccessary, mongoose check the differences.
-    
-    let dataEncrypted = req.body;
     
     try {
         //validate if password is equal or not
@@ -112,5 +137,8 @@ router.delete('/delete/:userId', async(req, res) => {
         res.status(500).json({ message: "An error occurred while deleting the user" });
     }
 });
+
+
+
 
 module.exports = router;
