@@ -2,6 +2,7 @@ const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const PASSWORD_JWT = process.env.PASSWORD_JWT;
 const {hashPassword, comparePassword } = require('../controller/encryptation');
+const { createToken } = require('./auth');
 
 require('dotenv').config();
 
@@ -25,6 +26,12 @@ const me = async(req, res) => {
 
     res.json(user);
 };
+
+const meAuth = async(req, res) => {
+    const _id = req.body;
+    console.log(_id);
+    res.json({message: "You have access", _id });
+}
 
 const getUsers = async(req, res ) => {
     try {
@@ -75,9 +82,10 @@ const createUser = async(req, res) => {
         const newUser = new User(userData); 
         const response = await newUser.save();
 
-        const token = jwt.sign({ id: newUser._id }, PASSWORD_JWT, {
-            expiresIn: 60 * 60 * 24
-        });
+        // const token = jwt.sign({ id: newUser._id }, PASSWORD_JWT, {
+        //     expiresIn: 60 * 60 * 24
+        // });
+        const token = createToken(newUser._id);
         res.status(201).json({auth: true, token});
         //res.status(201).json(`the username ${username} was created correctly with id ${response._id}`);
         
@@ -93,7 +101,7 @@ const updateUserById = async (req, res) => {
     const { password } =  req.body; // this is not neccessary, mongoose check the differences.
     
     try {
-        //validate if password is equal or not
+        //validate if password is equal or not, in case there is
         if(password) {
             const passwordEncryptedDatabase = await User.findById(userId);
             const passwordIsEqual = await comparePassword(password, passwordEncryptedDatabase.password);
@@ -133,4 +141,4 @@ const deleteUserById = async (req, res) => {
     }
 }
 
-module.exports = { me, getUsers, getUsersById, createUser, updateUserById, deleteUserById };
+module.exports = { me, getUsers, getUsersById, createUser, updateUserById, deleteUserById, meAuth };

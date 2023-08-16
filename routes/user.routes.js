@@ -1,17 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/user.model');
 const multer = require('multer'); //receive files
 const upload = multer({dest: './upload/' });
-const {hashPassword, comparePassword } = require('../controller/encryptation');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const PASSWORD_JWT = process.env.PASSWORD_JWT;
+const {tokenValidator} = require('../controller/auth');
 
 const userController = require('../controller/user.controller');
 
 
 router.get('/me', userController.me);
+router.get('/auth', tokenValidator, userController.meAuth); // test
 
 router.get('/all', userController.getUsers);
 
