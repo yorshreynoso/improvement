@@ -15,7 +15,7 @@ const userSchema = new Schema({
     gender: { type:String, enum: ['male', 'female'] },
     password:{ type:String, required: true},
     active: {type: Boolean, enum: [true, false] },
-    imagePath: {type:String, required: true}
+    imagePath: {type:String}
 });
 
 const User = mongoose.model('User', userSchema);

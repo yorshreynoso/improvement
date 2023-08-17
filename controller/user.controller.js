@@ -2,7 +2,7 @@ const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const PASSWORD_JWT = process.env.PASSWORD_JWT;
 const {hashPassword, comparePassword } = require('../controller/encryptation');
-const { createToken } = require('./auth');
+const { createToken, createRefreshToken, verify } = require('./auth');
 
 require('dotenv').config();
 
@@ -16,8 +16,6 @@ const me = async(req, res) => {
     }
 
     const decode = jwt.verify(token, PASSWORD_JWT); // { id: '64d6de4b6050a3beaaae239c', iat: 1691803211, exp: 1691889611 }
-    console.log(decode);
-    
     const user = await User.findById(decode.id, {password: 0});
 
     if(!user) {
@@ -28,9 +26,22 @@ const me = async(req, res) => {
 };
 
 const meAuth = async(req, res) => {
-    const _id = req.body;
-    console.log(_id);
-    res.json({message: "You have access", _id });
+    try {
+        const token = req.headers['x-access-token'];
+
+        if(!token) {
+            return res.status(401).json({auth:false, message:" no token provided"});
+        }
+    
+        const decode = jwt.verify(token, PASSWORD_JWT); // { id: '64d6de4b6050a3beaaae239c', iat: 1691803211, exp: 1691889611 }
+        // console.log('decode', decode);
+        const user = await User.findById(decode._id, {password: 0});
+
+        res.json(user);
+
+    } catch (error) {
+        res.status(404).json({auth:false, message:"No token provided"});
+    }
 }
 
 const getUsers = async(req, res ) => {
@@ -69,8 +80,11 @@ const getUsersById = async( req, res) => {
 
 const createUser = async(req, res) => {
     try {
+        const imagePath = "";
         const { username, password } = req.body;
-        const imagePath = req.file.path;
+        if(req.file) {
+            imagePath = req.file.path;
+        }
         const encryptedPassword = await hashPassword(password);
         
         const userData = {
@@ -82,12 +96,10 @@ const createUser = async(req, res) => {
         const newUser = new User(userData); 
         const response = await newUser.save();
 
-        // const token = jwt.sign({ id: newUser._id }, PASSWORD_JWT, {
-        //     expiresIn: 60 * 60 * 24
-        // });
+        // TODO: AGREGAR ROLES DESPUES
         const token = createToken(newUser._id);
-        res.status(201).json({auth: true, token});
-        //res.status(201).json(`the username ${username} was created correctly with id ${response._id}`);
+        const refreshToken = createRefreshToken(newUser._id);
+        res.status(201).json({auth: true, token, refreshToken });
         
     } catch (error) {
         console.error(`Error saving ${error}`);
